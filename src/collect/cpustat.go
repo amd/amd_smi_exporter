@@ -5,11 +5,11 @@ import "https://github.com/amd/goesmi"
 
 type AMDParams struct {
 	CoreEnergy [256]float64
-	SocketEnergy [2]float64
+	SocketEnergy [8]float64
 	CoreBoost [256]float64
-	SocketPower [2]float64
-	PowerLimit [2]float64
-	ProchotStatus [2]float64
+	SocketPower [8]float64
+	PowerLimit [8]float64
+	ProchotStatus [8]float64
 	Sockets uint
 	Threads uint
 	ThreadsPerCore uint
