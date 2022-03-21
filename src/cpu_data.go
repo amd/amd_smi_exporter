@@ -1,3 +1,42 @@
+/*
+ * MIT-X11 Open Source License
+ *
+ * Copyright (c) 2022, Advanced Micro Devices, Inc.
+ * All rights reserved.
+ *
+ * Developed by:
+ *
+ *                 AMD Research and AMD Software Development
+ *
+ *                 Advanced Micro Devices, Inc.
+ *
+ *                 www.amd.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sellcopies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ *  - The above copyright notice and this permission notice shall be included in
+ *    all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name of the Advanced Micro Devices,
+ * Inc. shall not be used in advertising or otherwise to promote the sale, use
+ * or other dealings in this Software without prior written authorization from
+ * the Advanced Micro Devices, Inc.
+ *
+ */
+
 package main
 
 import (
@@ -19,6 +58,13 @@ type amd_data struct {
 	Sockets *prometheus.Desc
 	Threads *prometheus.Desc
 	ThreadsPerCore *prometheus.Desc
+	NumGPUs *prometheus.Desc
+	GPUDevId *prometheus.Desc
+	GPUPowerCap *prometheus.Desc
+	GPUPowerAvg *prometheus.Desc
+	GPUTemperature *prometheus.Desc
+	GPUSCLK *prometheus.Desc
+	GPUMCLK *prometheus.Desc
 	Data func() (collect.AMDParams)
 }
 
@@ -82,6 +128,48 @@ func NewCollector(handle func() (collect.AMDParams)) prometheus.Collector {
 			prometheus.BuildFQName("amd", "", "num_threads_per_core"),
 			"AMD Params",// The metric's help text.
 			[]string{"num_threads_per_core"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		NumGPUs: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "num_gpus"),
+			"AMD Params",// The metric's help text.
+			[]string{"num_gpus"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUDevId: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_dev_id"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_dev_id"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUPowerCap: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_power_cap"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_power_cap"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUPowerAvg: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_power_avg"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_power_avg"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUTemperature: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_current_temperature"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_current_temperature"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUSCLK: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_SCLK"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_SCLK"},// The metric's variable label dimensions.
+			nil,// The metric's constant label dimensions.
+		),
+		GPUMCLK: prometheus.NewDesc(
+			prometheus.BuildFQName("amd", "", "gpu_MCLK"),
+			"AMD Params",// The metric's help text.
+			[]string{"gpu_MCLK"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 
@@ -152,10 +240,60 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
 	}
 
+	for i,s := range data.GPUDevId{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUDevId,
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+	}
+
+	for i,s := range data.GPUPowerCap{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUPowerCap,
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+	}
+
+	for i,s := range data.GPUPowerAvg{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUPowerAvg,
+			prometheus.CounterValue, float64(s), strconv.Itoa(i))
+	}
+
+	for i,s := range data.GPUTemperature{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUTemperature,
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+	}
+
+	for i,s := range data.GPUSCLK{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUSCLK,
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+	}
+
+	for i,s := range data.GPUMCLK{
+		if uint(i) > (data.NumGPUs - 1) {
+			continue
+		}
+		ch <- prometheus.MustNewConstMetric(c.GPUMCLK,
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+	}
+
 	ch <- prometheus.MustNewConstMetric(c.Sockets,
 		prometheus.GaugeValue, float64(data.Sockets), "")
 	ch <- prometheus.MustNewConstMetric(c.Threads,
 		prometheus.GaugeValue, float64(data.Threads), "")
 	ch <- prometheus.MustNewConstMetric(c.ThreadsPerCore,
 		prometheus.GaugeValue, float64(data.ThreadsPerCore), "")
+	ch <- prometheus.MustNewConstMetric(c.NumGPUs,
+		prometheus.GaugeValue, float64(data.NumGPUs), "")
 }
