@@ -15,12 +15,23 @@ e. [Custom rules](#custom)
 <a name="desc"></a>
 # AMD SMI Prometheus Exporter
 
-The AMD SMI Exporter is a standalone app that can be run as a daemon, written in GO Language, that exports AMD CPU  & GPU metrics to the Prometheus server. The AMD Prometheus Exporter employs the [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git) & [ROCm SMI Library](https://github.com/RadeonOpenCompute/rocm_smi_lib.git) for its data acquisition. The exporter and the E-SMI/ROCm-SMI library have a [GO binding](https://github.com/amd/go_amd_smi.git) that provides an interface between the e-smi/rocm-smi C library and the GO exporter code. 
+The AMD SMI Exporter is a standalone app that can be run as a daemon, written in GO Language,
+that exports AMD CPU  & GPU metrics to the Prometheus server. The AMD SMI Prometheus Exporter
+employs the [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git) &
+[ROCm SMI Library](https://github.com/RadeonOpenCompute/rocm_smi_lib.git) for its data
+acquisition. The exporter and the E-SMI/ROCm-SMI library have a
+[GO binding](https://github.com/amd/go_amd_smi.git) that provides an interface between the
+e-smi,rocm-smi C,C++ library and the GO exporter code. 
 
 ## Important note about Versioning and Backward Compatibility
-The AMD SMI Exporter follows the E-SMI In-band library and the ROCm library in its releases, as it is dependent on the underlying libraries for its data. The Exporter is currently under development, and therefore subject to change in the features it offers and at the interface with the GO binding. 
+The AMD SMI Exporter follows the E-SMI In-band library and the ROCm library in its releases,
+as it is dependent on the underlying libraries for its data. The Exporter is currently under
+development, and therefore subject to change in the features it offers and at the interface
+with the GO binding. 
 
-While every effort will be made to ensure stable backward compatibility in software releases with a major version greater than 0, any code/interface may be subject to rivision/change while the major version remains 0.
+While every effort will be made to ensure stable backward compatibility in software releases
+with a major version greater than 0, any code/interface may be subject to rivision/change while
+the major version remains 0.
 
 <a name="build"></a>
 # Building the GO Exporter
@@ -29,7 +40,8 @@ While every effort will be made to ensure stable backward compatibility in softw
 The source code for the GO Exporter is available at [AMD SMI Exporter](https://github.com/amd/amd_smi_exporter.git).
 
 ## Directory stucture of the source
-Once the exporter source has been cloned to a local Linux machine, the directory structure of source is as below:
+Once the exporter source has been cloned to a local Linux machine, the directory structure of
+source is as below:
 * `$ src/` Contains exporter source for package main
 * `$ src/collect` Contains the implementation of the Scan function of the collector.
 
@@ -52,17 +64,25 @@ The GO Exporter may be built from the src directory as follows:
 
 	```amd_smi_exporter/src$ make```
 
-The aforementioned steps will create the "amd_exporter" GO binary file. To install the binary in /usr/local/bin, and install the service file in /etc/systemd/system directory, one may execute:
+The aforementioned steps will create the "amd_exporter" GO binary file. To install the binary in
+/usr/local/bin, and install the service file in /etc/systemd/system directory, one may execute:
 
 	```$ sudo make install```
 
 <a name="lib"></a>
 # Library dependencies
-Before executing the GO exporter as a standalone executable or as a service, one needs to ensure that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met by ensuring that they are installed in the "/opt/esmi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/lib" directories respectively. Please refer to <https://github.com/amd/esmi_ib_library/docs/README.md>, <https://github.com/amd/goamdsmi/README.md>, and <https://github.com/RadeonOpenCompute/rocm_smi_lib/README.md> for the build and installation instructions.
+Before executing the GO exporter as a standalone executable or as a service, one needs to ensure
+that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met by ensuring that they are
+installed in the "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/rocm_smi/lib" directories
+respectively. Please refer to <https://github.com/amd/esmi_ib_library/docs/README.md>,
+<https://github.com/amd/goamdsmi/README.md>, and
+<https://github.com/RadeonOpenCompute/rocm_smi_lib/README.md> for the build and installation
+instructions.
 
 <a name="kernel"></a>
 # Kernel dependencies
-The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux to manage the system management features.
+The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux
+to manage the system management features.
 
 	* amd_hsmp <https://github.com/amd/amd_hsmp.git>
 	* amd_energy <https://github.com/amd/amd_energy.git>
@@ -87,7 +107,8 @@ AMD Zen3 based CPU Family `19h` Models `0h-Fh` and `30h-3Fh`.
 
 <a name="sw"></a>
 # Additional required software for building
-In order to build the GO Exporter, the following components are required. Note that the software versions listed are what is being used in development. Earlier versions are not guaranteed to work:
+In order to build the GO Exporter, the following components are required. Note that the software versions
+listed are what is being used in development. Earlier versions are not guaranteed to work:
 
 * go1.17.3 linux/amd64
 
@@ -96,7 +117,11 @@ In order to build the GO Exporter, the following components are required. Note t
 ## At the Core level
 
 ### 1. amd_core_energy
-	### Description: Displays the per-core energy consumption of the processor so far. This object may be queried at the core level or the thread level. The values reported by the threads in a hyperthreaded core will be the same. This object query will report the energy counter values for all threads. To query a single thread (lets say the thread number is 101), the user may use the following query:
+	### Description: Displays the per-core energy consumption of the processor so far.
+This object may be queried at the core level or the thread level. The values reported by
+the threads in a hyperthreaded core will be the same. This object query will report the
+energy counter values for all threads. To query a single thread (lets say the thread number
+is 101), the user may use the following query:
 
 	amd_core_energy{thread="101"}
 
@@ -112,7 +137,9 @@ In order to build the GO Exporter, the following components are required. Note t
 ## Socket
 
 ### 3. amd_socket_energy
-	### Description: Displays the per-socket cumulative energy consumed by all cores so far. This value excludes the energy consumed by the AID (Active Interposer Die).To query a single socket (lets say socket 2), the user may use the following query:
+	### Description: Displays the per-socket cumulative energy consumed by all cores
+so far. This value excludes the energy consumed by the AID (Active Interposer Die).To query
+a single socket (lets say socket 2), the user may use the following query:
 
 	amd_socket_energy{socket="2"}
 
@@ -120,7 +147,8 @@ In order to build the GO Exporter, the following components are required. Note t
 	### Property: Read-only
 
 ### 4. amd_socket_power
-	### Description: Displays the per-socket power consumed. This is a real time gauge value that is queried at a time interval set by the scrape interval.
+	### Description: Displays the per-socket power consumed. This is a real time gauge
+value that is queried at a time interval set by the scrape interval.
 	### Type: Gauge
 	### Property: Read-only
 
@@ -130,7 +158,8 @@ In order to build the GO Exporter, the following components are required. Note t
 	### Property: Read-only
 
 ### 6. amd_prochot_status
-	### Description: Displays a binary value of "0" or "1", where "1" implies that the PROC_HOT status of the processor has been triggered.
+	### Description: Displays a binary value of "0" or "1", where "1" implies that the
+PROC_HOT status of the processor has been triggered.
 	### Type: Gauge
 	### Property: Read-only
 
@@ -193,7 +222,8 @@ In order to build the GO Exporter, the following components are required. Note t
 <a name="custom"></a>
 ## Custom rules
 
-The prometheus query language allows the user to customize his queries based on his/her requirements. Here are a few sample queries that may be built over the aforementioned objects:
+The prometheus query language allows the user to customize his queries based on user requirements.
+Here are a few sample queries that may be built over the aforementioned objects:
 
 * > ### amd_core_energy{thread="101"}/1000000 
 	Displays the core energy of core 101 shifted by six decimal points.
