@@ -1,0 +1,17 @@
+groups:
+- name: amd-smi-custom-rules
+  rules:
+    - record: amd_core_energy_Joules
+      expr: amd_core_energy/1000000
+    - record: amd_total_core_energy
+      expr: sum by(type) ({__name__="amd_core_energy", job="amd-smi-exporter"})/2
+    - record: amd_boost_limit_Mhz
+      expr: amd_boost_limit
+    - record: amd_socket_energy_KJoules
+      expr: amd_socket_energy/1000000000
+    - record: amd_socket_power_Watts
+      expr: amd_socket_power/1000
+    - record: amd_power_limit_Watts
+      expr: amd_power_limit/1000
+    - record: amd_gpu_power_cap_Watts
+      expr: amd_gpu_power_cap/1000000
