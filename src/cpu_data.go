@@ -85,7 +85,7 @@ func NewCollector(handle func() (collect.AMDParams)) prometheus.Collector {
 		SocketEnergy: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "socket_energy"),
 			"AMD Params",// The metric's help text.
-			[]string{"socket_energy"},// The metric's variable label dimensions.
+			[]string{"socket"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		BoostLimit: prometheus.NewDesc(
@@ -97,7 +97,7 @@ func NewCollector(handle func() (collect.AMDParams)) prometheus.Collector {
 		SocketPower: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "socket_power"),
 			"AMD Params",// The metric's help text.
-			[]string{"socket_power"},// The metric's variable label dimensions.
+			[]string{"socket"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		PowerLimit: prometheus.NewDesc(
