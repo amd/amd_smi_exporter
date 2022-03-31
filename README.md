@@ -21,13 +21,14 @@ employs the [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git
 [ROCm SMI Library](https://github.com/RadeonOpenCompute/rocm_smi_lib.git) for its data
 acquisition. The exporter and the E-SMI/ROCm-SMI library have a
 [GO binding](https://github.com/amd/go_amd_smi.git) that provides an interface between the
-e-smi,rocm-smi C,C++ library and the GO exporter code. 
+e-smi,rocm-smi C,C++ library and the GO exporter code.
 
 ## Important note about Versioning and Backward Compatibility
+
 The AMD SMI Exporter follows the E-SMI In-band library and the ROCm library in its releases,
 as it is dependent on the underlying libraries for its data. The Exporter is currently under
 development, and therefore subject to change in the features it offers and at the interface
-with the GO binding. 
+with the GO binding.
 
 While every effort will be made to ensure stable backward compatibility in software releases
 with a major version greater than 0, any code/interface may be subject to rivision/change while
@@ -37,15 +38,18 @@ the major version remains 0.
 # Building the GO Exporter
 
 ## Dowloading the source
+
 The source code for the GO Exporter is available at [AMD SMI Exporter](https://github.com/amd/amd_smi_exporter.git).
 
 ## Directory stucture of the source
+
 Once the exporter source has been cloned to a local Linux machine, the directory structure of
 source is as below:
 * `$ src/` Contains exporter source for package main
 * `$ src/collect` Contains the implementation of the Scan function of the collector.
 
 ## Building
+
 The GO Exporter may be built from the src directory as follows:
 
 * Change the directory to amd_smi_exporter/src
@@ -56,57 +60,79 @@ The GO Exporter may be built from the src directory as follows:
 
 	```amd_smi_exporter/src$ make clean```
 
-* Execute "make" to perform a "go get" of dependent modules such as 
+* Execute "make" to perform a "go get" of dependent modules such as
 	* github.com/prometheus/client_golang
 	* github.com/prometheus/client_golang/prometheus
 	* github.com/prometheus/client_golang/prometheus/promhttp
-	* github.com/amd/goamdsmi
+	* github.com/amd/go_amd_smi
+
+NOTE: Before executing the GO exporter as a standalone executable or as a service, one needs to ensure that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met. Please refer to the steps to build and install the library dependencies in the respective README of these repositories. The environment variable for the LD_LIBRARY_PATH is to be set to "/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib". The user may edit this environment variable to reflect the installation path where the dependent libraries are installed.
 
 	```amd_smi_exporter/src$ make```
 
-The aforementioned steps will create the "amd_exporter" GO binary file. To install the binary in
+The aforementioned steps will create the "amd_smi_exporter" GO binary file. To install the binary in
 /usr/local/bin, and install the service file in /etc/systemd/system directory, one may execute:
 
 	```$ sudo make install```
 
 <a name="lib"></a>
 # Library dependencies
+
 Before executing the GO exporter as a standalone executable or as a service, one needs to ensure
 that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met by ensuring that they are
 installed in the "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/rocm_smi/lib" directories
 respectively. Please refer to <https://github.com/amd/esmi_ib_library/docs/README.md>,
-<https://github.com/amd/goamdsmi/README.md>, and
+<https://github.com/amd/go_amd_smi/README.md>, and
 <https://github.com/RadeonOpenCompute/rocm_smi_lib/README.md> for the build and installation
 instructions.
 
 <a name="kernel"></a>
 # Kernel dependencies
+
 The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux
-to manage the system management features.
+to manage the system management features. The amd_hsmp driver is available in upstream kernel version 5.18. The driver git repo is as follows:
 
 	* amd_hsmp <https://github.com/amd/amd_hsmp.git>
 	* amd_energy <https://github.com/amd/amd_energy.git>
 
 <a name="running"></a>
 #Running the GO Exporter
-1. The GO exporter may be run manually by executing the "amd_exporter" GO binary
 
-	```$ ./amd_exporter```
+1. The GO exporter may be run manually by executing the "amd_smi_exporter" GO binary
+
+Prerequisite: Please ensure that the prometheus systemd service is installed in /etc/systemd/system/prometheus.service and that it is running with the configs specified in /usr/local/bin/prometheus/prometheus.yml.
+
+	```$ ./amd_smi_exporter```
 
 ** OR **
 
 2. The GO exporter may be started as a systemd daemon as follows:
 
-	```$ sudo service amd-exporter start```
+Prerequisite: Edit the /usr/local/bin/prometheus/prometheus.yml and add the following rule_files and scrape_configs:
+rule_files:
+  - "amd-smi-custom-rules.yml"
+
+
+scrape_configs:
+  - job_name: "prometheus"
+  - job_name: "amd-smi-exporter"
+    static_configs:
+      - targets: ["localhost:2021"]
+
+	```$ sudo systemctl daemon-reload```
+	```$ sudo service prometheus restart```
+	```$ sudo service amd-smi-exporter start```
 
 NOTE: The environment variable for the LD_LIBRARY_PATH is set to /opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib
 
 <a name="hw"></a>
 # Supported hardware
-AMD Zen3 based CPU Family `19h` Models `0h-Fh` and `30h-3Fh`.
+
+AMD Zen3 based CPU Family `19h` Models `0h-Fh` and `30h-3Fh`, and `17h` Model `30h`.
 
 <a name="sw"></a>
 # Additional required software for building
+
 In order to build the GO Exporter, the following components are required. Note that the software versions
 listed are what is being used in development. Earlier versions are not guaranteed to work:
 
@@ -222,13 +248,13 @@ PROC_HOT status of the processor has been triggered.
 <a name="custom"></a>
 ## Custom rules
 
-The prometheus query language allows the user to customize his queries based on user requirements.
+The prometheus query language allows the user to customize his queries based on user requirements. The customizations may be added to the /usr/local/bin/prometheus/amd-smi-custom-rules.yml file".
 Here are a few sample queries that may be built over the aforementioned objects:
 
-* > ### amd_core_energy{thread="101"}/1000000 
+* > ### amd_core_energy{thread="101"}/1000000
 	Displays the core energy of core 101 shifted by six decimal points.
 
-* > ### amd_socket_power/100 > 650.00 
+* > ### amd_socket_power/100 > 650.00
 	Rule to check if socket power consumption has gone over 650.00
 
 * > ### amd_prochot_status != 0
