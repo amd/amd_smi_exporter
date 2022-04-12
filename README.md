@@ -66,12 +66,20 @@ The GO Exporter may be built from the src directory as follows:
 	* github.com/prometheus/client_golang/prometheus/promhttp
 	* github.com/amd/go_amd_smi
 
-NOTE: Before executing the GO exporter as a standalone executable or as a service, one needs to ensure that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met. Please refer to the steps to build and install the library dependencies in the respective README of these repositories. The environment variable for the LD_LIBRARY_PATH is to be set to "/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib". The user may edit this environment variable to reflect the installation path where the dependent libraries are installed.
+NOTE: Before executing the GO exporter as a standalone executable or
+as a service, one needs to ensure that the e-smi , goamdsmi_shim, and
+rocm-smi library dependencies are met. Please refer to the steps to
+build and install the library dependencies in the respective README
+of these repositories. The environment variable for the LD_LIBRARY_PATH
+is to be set to "/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib".
+The user may edit this environment variable to reflect the installation path
+where the dependent libraries are installed.
 
 	```amd_smi_exporter/src$ make```
 
-The aforementioned steps will create the "amd_smi_exporter" GO binary file. To install the binary in
-/usr/local/bin, and install the service file in /etc/systemd/system directory, one may execute:
+The aforementioned steps will create the "amd_smi_exporter" GO binary file.
+To install the binary in /usr/local/bin, and install the service file in
+/etc/systemd/system directory, one may execute:
 
 	```$ sudo make install```
 
@@ -90,17 +98,22 @@ instructions.
 # Kernel dependencies
 
 The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux
-to manage the system management features. The amd_hsmp driver is available in upstream kernel version 5.18. The driver git repo is as follows:
+to manage the system management features.
 
-	* amd_hsmp <https://github.com/amd/amd_hsmp.git>
-	* amd_energy <https://github.com/amd/amd_energy.git>
+CPU energy information is retrieved from out-of-tree amd_energy driver
+	* [amd_energy] (https://github.com/amd/amd_energy.git)
+
+The amd_hsmp driver for required for all the information
+	* amd_hsmp driver is available in upstream kernel version 5.18.
 
 <a name="running"></a>
 #Running the GO Exporter
 
 1. The GO exporter may be run manually by executing the "amd_smi_exporter" GO binary
 
-Prerequisite: Please ensure that the prometheus systemd service is installed in /etc/systemd/system/prometheus.service and that it is running with the configs specified in /usr/local/bin/prometheus/prometheus.yml.
+Prerequisite: Please ensure that the prometheus systemd service is installed in
+/etc/systemd/system/prometheus.service and that it is running with the configs specified
+in /usr/local/bin/prometheus/prometheus.yml.
 
 	```$ ./amd_smi_exporter```
 
@@ -108,7 +121,8 @@ Prerequisite: Please ensure that the prometheus systemd service is installed in 
 
 2. The GO exporter may be started as a systemd daemon as follows:
 
-Prerequisite: Edit the /usr/local/bin/prometheus/prometheus.yml and add the following rule_files and scrape_configs:
+Prerequisite: Edit the /usr/local/bin/prometheus/prometheus.yml and add the following rule_files
+and scrape_configs:
 rule_files:
   - "amd-smi-custom-rules.yml"
 
@@ -123,7 +137,8 @@ scrape_configs:
 	```$ sudo service prometheus restart```
 	```$ sudo service amd-smi-exporter start```
 
-NOTE: The environment variable for the LD_LIBRARY_PATH is set to /opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib
+NOTE: The environment variable for the LD_LIBRARY_PATH is set to
+/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib
 
 <a name="hw"></a>
 # Supported hardware
@@ -133,8 +148,8 @@ AMD Zen3 based CPU Family `19h` Models `0h-Fh` and `30h-3Fh`, and `17h` Model `3
 <a name="sw"></a>
 # Additional required software for building
 
-In order to build the GO Exporter, the following components are required. Note that the software versions
-listed are what is being used in development. Earlier versions are not guaranteed to work:
+In order to build the GO Exporter, the following components are required. Note that the software
+versions listed are what is being used in development. Earlier versions are not guaranteed to work:
 
 * go1.17.3 linux/amd64
 
@@ -248,7 +263,8 @@ PROC_HOT status of the processor has been triggered.
 <a name="custom"></a>
 ## Custom rules
 
-The prometheus query language allows the user to customize his queries based on user requirements. The customizations may be added to the /usr/local/bin/prometheus/amd-smi-custom-rules.yml file".
+The prometheus query language allows the user to customize his queries based on user requirements.
+The customizations may be added to the /usr/local/bin/prometheus/amd-smi-custom-rules.yml file".
 Here are a few sample queries that may be built over the aforementioned objects:
 
 * > ### amd_core_energy{thread="101"}/1000000
