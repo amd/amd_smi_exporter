@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: amd-smi-exporter
+spec:
+  selector:
+    matchLabels:
+      app: amd-smi-exporter
+  template:
+    metadata:
+      name: amd-smi-exporter
+      labels:
+        app: amd-smi-exporter
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      containers:
+      - name: amd-smi-exporter-container
+        image: "amd_smi_exporter_container:0.1"
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 2021
+        args:
+          - "-d --name amd-exporter --device=/dev/cpu --device=/dev/kfd --device=/dev/dri --privileged"
+---

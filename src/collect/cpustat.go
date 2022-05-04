@@ -42,9 +42,9 @@ package collect
 import "github.com/amd/go_amd_smi"
 
 type AMDParams struct {
-	CoreEnergy [256]float64
+	CoreEnergy [512]float64
 	SocketEnergy [2]float64
-	CoreBoost [256]float64
+	CoreBoost [512]float64
 	SocketPower [2]float64
 	PowerLimit [2]float64
 	ProchotStatus [2]float64
@@ -52,12 +52,12 @@ type AMDParams struct {
 	Threads uint
 	ThreadsPerCore uint
 	NumGPUs uint
-	GPUDevId [8]float64
-	GPUPowerCap [8]float64
-	GPUPowerAvg [8]float64
-	GPUTemperature [8]float64
-	GPUSCLK [8]float64
-	GPUMCLK [8]float64
+	GPUDevId [24]float64
+	GPUPowerCap [24]float64
+	GPUPowerAvg [24]float64
+	GPUTemperature [24]float64
+	GPUSCLK [24]float64
+	GPUMCLK [24]float64
 }
 
 func Scan() (AMDParams) {
