@@ -2,10 +2,11 @@
 2. [Building the GO Exporter](#build)
 3. [Library Dependencies](#lib)
 4. [Kernel Dependencies](#kernel)
-5. [Running the GO Exporter](#running)
-6. [Supported Hardware](#hw)
-7. [Software needed for the build](#sw)
-8. [Objects exported by the AMD SMI Exporter](#objects)
+5. [Building the container for the GO Exporter](#container_build)
+6. [Running the GO Exporter](#running)
+7. [Supported Hardware](#hw)
+8. [Software needed for the build](#sw)
+9. [Objects exported by the AMD SMI Exporter](#objects)
 a. [At the Core level](#core)
 b. [At the Socket level](#socket)
 c. [At the System level](#system)
@@ -60,12 +61,6 @@ The GO Exporter may be built from the src directory as follows:
 
 	```amd_smi_exporter/src$ make clean```
 
-* Execute "make" to perform a "go get" of dependent modules such as
-	* github.com/prometheus/client_golang
-	* github.com/prometheus/client_golang/prometheus
-	* github.com/prometheus/client_golang/prometheus/promhttp
-	* github.com/amd/go_amd_smi
-
 NOTE: Before executing the GO exporter as a standalone executable or
 as a service, one needs to ensure that the e-smi , goamdsmi_shim, and
 rocm-smi library dependencies are met. Please refer to the steps to
@@ -74,6 +69,12 @@ of these repositories. The environment variable for the LD_LIBRARY_PATH
 is to be set to "/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib".
 The user may edit this environment variable to reflect the installation path
 where the dependent libraries are installed.
+
+* Execute "make" to perform a "go get" of dependent modules such as
+	* github.com/prometheus/client_golang
+	* github.com/prometheus/client_golang/prometheus
+	* github.com/prometheus/client_golang/prometheus/promhttp
+	* github.com/amd/go_amd_smi
 
 	```amd_smi_exporter/src$ make```
 
@@ -106,23 +107,49 @@ CPU energy information is retrieved from out-of-tree amd_energy driver
 The amd_hsmp driver for required for all the information
 	* amd_hsmp driver is available in upstream kernel version 5.18.
 
+<a name="container_build"></a>
+# Building the container for the GO Exporter
+
+Once the GO Exporter is built, following steps mentioned in
+[Building the GO Exporter](#build) one may proceed to create
+a containerized micro service of the go executable by executing
+the following commands:
+
+Prerequisite: docker version 20.10.12 or later must be installed on the build server for the
+container build to succeed.
+
+* Execute "make container_clean" to clean pre-existing images and configuration of the container
+  image.
+
+	```amd_smi_exporter/src$ make container_clean```
+
+* Build the fresh container image with the following command:
+
+	```amd_smi_exporter/src$ make container```
+
+  This command will build the container image and will be listed when the user issues the
+  ```sudo docker images``` command. A tarball of the container image file
+  "k8/amd_smi_exporter_container.tar" is also saved in the "k8" directory, and this may
+  be used to deploy the container manually on respective nodes of the kubernetes cluster
+  using the "k8/daemonset.yaml" file.
+
+  The instructions to deploy the container in the cluster and instructions to run the
+  container by hand are provided in the section [Running the GO Exporter](#running) point
+  number 3.
+
+
 <a name="running"></a>
-#Running the GO Exporter
+# Running the GO Exporter
 
-1. The GO exporter may be run manually by executing the "amd_smi_exporter" GO binary
+NOTE: Only one instance of the GO Exporter may be run on the server, either as a 
+standalone service, or as a containerized micro service (started with "docker run"
+or as a daemonSet of a kubernetes deployment).
 
-Prerequisite: Please ensure that the prometheus systemd service is installed in
-/etc/systemd/system/prometheus.service and that it is running with the configs specified
-in /usr/local/bin/prometheus/prometheus.yml.
+Prerequisite: To ensure that AMD custom parameters defined in the 
+amd-smi-custom-rules.yml file are found in the promql queries, add 
+the following rule_files and scrape_configs to the 
+/usr/local/bin/prometheus/prometheus.yml file:
 
-	```$ ./amd_smi_exporter```
-
-** OR **
-
-2. The GO exporter may be started as a systemd daemon as follows:
-
-Prerequisite: Edit the /usr/local/bin/prometheus/prometheus.yml and add the following rule_files
-and scrape_configs:
 rule_files:
   - "amd-smi-custom-rules.yml"
 
@@ -133,12 +160,57 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:2021"]
 
-	```$ sudo systemctl daemon-reload```
-	```$ sudo service prometheus restart```
-	```$ sudo service amd-smi-exporter start```
+Please ensure that the prometheus systemd service is installed in
+/etc/systemd/system/prometheus.service and that it is running with 
+the configs specified in /usr/local/bin/prometheus/prometheus.yml.
+
+## 1. The GO exporter may be run manually by executing the "amd_smi_exporter" GO binary
+
+	```amd_smi_exporter/src$ ./amd_smi_exporter```
+
+# ** OR **
+
+## 2. The GO exporter may be started as a systemd daemon as follows:
 
 NOTE: The environment variable for the LD_LIBRARY_PATH is set to
 /opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib
+
+	```$ sudo systemctl daemon-reload```
+
+	```$ sudo service prometheus restart```
+
+	```$ sudo service amd-smi-exporter start```
+
+# ** OR **
+
+## 3. The GO exporter may be executed as a containerized micro service that may be started by
+   hand or as a kubernetes daemonSet, as shown below:
+
+NOTE: It is assumed that the user has a running docker daemon and a kubernetes cluster.
+
+   ## On a server node that is not a part of a kubernetes cluster, one may execute the following
+   command:
+
+	```$ sudo docker run -d --name amd-exporter --device=/dev/cpu --device=/dev/kfd
+           --device=/dev/dri --privileged -p 2021:2021 amd_smi_exporter_container:0.1```
+
+   Alternatively, the docker image tarball of the container may be copied to individual
+   kubernetes cluster node and loaded on the worker node. The daemonSet may then be applied
+   from the master node as follows:
+
+   ## On the worker node, copy the amd_smi_exporter_container.tar image file and execute:
+
+	```$ sudo docker load -i amd_smi_exporter_container.tar```
+
+	On the master node, copy the daemonset.yaml file and execute:
+
+	```$ kubectl apply -f daemonset.yaml```
+
+	This will deploy a single running instance of the AMD SMI Exporter container micro
+	service on the worker nodes of the kubernetes cluster. The daemonset.yaml file may
+	be edited to apply taints for nodes where the exporter is not expected to run in
+	the cluster.
+
 
 <a name="hw"></a>
 # Supported hardware
@@ -152,6 +224,7 @@ In order to build the GO Exporter, the following components are required. Note t
 versions listed are what is being used in development. Earlier versions are not guaranteed to work:
 
 * go1.17.3 linux/amd64
+* docker version 20.10.12
 
 
 <a name="core"></a>
