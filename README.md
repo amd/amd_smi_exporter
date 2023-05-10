@@ -333,6 +333,11 @@ PROC_HOT status of the processor has been triggered.
 	### Type: Gauge
 	### Property: Read-only
 
+## 17. amd_gpu_Usage
+        ### Description: Displays the GPU Use percent
+        ### Type: Gauge
+        ### Property: Read-only
+
 <a name="custom"></a>
 ## Custom rules
 
