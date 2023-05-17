@@ -65,6 +65,7 @@ type amd_data struct {
 	GPUTemperature *prometheus.Desc
 	GPUSCLK *prometheus.Desc
 	GPUMCLK *prometheus.Desc
+	GPUUsage *prometheus.Desc
 	Data func() (collect.AMDParams)
 }
 
@@ -172,6 +173,13 @@ func NewCollector(handle func() (collect.AMDParams)) prometheus.Collector {
 			[]string{"gpu_MCLK"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
+		GPUUsage: prometheus.NewDesc(
+                        prometheus.BuildFQName("amd", "", "gpu_use_percent"),
+                        "AMD Params",// The metric's help text.
+                        []string{"gpu_use_percent"},// The metric's variable label dimensions.
+                        nil,// The metric's constant label dimensions.
+                ),
+
 
 		Data: handle, //This is the Scan() function handle
 	}
@@ -287,6 +295,15 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(c.GPUMCLK,
 			prometheus.GaugeValue, float64(s), strconv.Itoa(i))
 	}
+
+        for i,s := range data.GPUUsage{
+                if uint(i) > (data.NumGPUs - 1) {
+                        continue
+                }
+                ch <- prometheus.MustNewConstMetric(c.GPUUsage,
+                        prometheus.GaugeValue, float64(s), strconv.Itoa(i))
+        }
+
 
 	ch <- prometheus.MustNewConstMetric(c.Sockets,
 		prometheus.GaugeValue, float64(data.Sockets), "")
