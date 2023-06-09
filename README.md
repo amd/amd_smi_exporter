@@ -338,6 +338,11 @@ PROC_HOT status of the processor has been triggered.
         ### Type: Gauge
         ### Property: Read-only
 
+## 18. amd_gpu_memory_busy percent
+        ### Description: Displays the GPU Memory busy percent
+        ### Type: Gauge
+        ### Property: Read-only
+
 <a name="custom"></a>
 ## Custom rules
 
