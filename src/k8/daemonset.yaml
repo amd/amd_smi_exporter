@@ -19,6 +19,10 @@ spec:
       - name: amd-smi-exporter-container
         image: "amd_smi_exporter_container:0.1"
         imagePullPolicy: Never
+        securityContext:
+          privileged: true #Needed for /dev
+          capabilities:
+            drop: ["ALL"]
         ports:
         - containerPort: 2021
         args:

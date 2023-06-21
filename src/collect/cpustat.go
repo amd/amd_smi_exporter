@@ -59,6 +59,7 @@ type AMDParams struct {
 	GPUSCLK [24]float64
 	GPUMCLK [24]float64
 	GPUUsage [24]float64
+	GPUMemoryUsage [24]float64
 }
 
 func Scan() (AMDParams) {
@@ -138,6 +139,11 @@ func Scan() (AMDParams) {
                         value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_busy_percent_get(i))
                         stat.GPUUsage[i] = float64(value64)
                         value64 = 0
+
+			value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_memory_busy_percent_get(i))
+                        stat.GPUMemoryUsage[i] = float64(value64)
+                        value64 = 0
+
 		}
 	}
 
