@@ -40,14 +40,68 @@
 package main
 
 import (
+	"io"
 	"log"
+	"strconv"
+	"strings"
+	"os/exec"
 	"net/http"
+	"encoding/json"
 	"src/collect" // This has the implementation of the Scan() function
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var gGPUProductNames[24] string
+
+/* rocm-smi output sample
+{"card0": 
+    {
+	"Card series": "Instinct MI210", 
+	"Card model": "0x0c34", 
+	"Card vendor": "Advanced Micro Devices, Inc. [AMD/ATI]", 
+	"Card SKU": "D67301"
+    }
+}*/
+
+type Card struct {
+	Cardseries string `json:"cardseries"`
+	Cardmodel  string `json:"cardmodel"`
+	Cardvendor string `json:"cardvendor"`
+	CardSKU    string `json:"cardsku"`
+}
+
+type Info map[string]Card
+
+func GetGpuProductNames() {
+	//rocm-smi output in json format
+        rocmsmiJson, err := exec.Command("rocm-smi", "--showproductname", "--json").Output()
+	if err == nil {
+	    //format for json unmarshalling
+	    productnamesJson := strings.ReplaceAll(strings.ToLower(string(rocmsmiJson)), " ", "")
+	    dec := json.NewDecoder(strings.NewReader(productnamesJson))
+	    for {
+		var cards Info
+		if err := dec.Decode(&cards); err == io.EOF {
+		    break
+		} else if err != nil {
+		    log.Fatal(err)
+		}
+		//iterate over each card
+		for k, _ := range cards {
+		    deviceID, err := strconv.Atoi(strings.TrimPrefix(string(k), "card"))
+		    if err == nil {
+			gGPUProductNames[deviceID] = cards[k].Cardseries
+		    }
+		}
+	    }
+	}
+}
+
 func main() {
+	// Get all GPU product names
+	GetGpuProductNames()
+
 	// Called on each collector.Collect.
 	handle := func() (collect.AMDParams) {
 		return collect.Scan()
@@ -68,3 +122,4 @@ func main() {
 		log.Fatalf("cannot start collector exporter: %s", err)
 	}
 }
+
