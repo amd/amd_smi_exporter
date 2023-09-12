@@ -1,6 +1,7 @@
 build:
 	make clean
 	go mod init src
+	go get golang.org/x/exp/slices
 	go get github.com/prometheus/client_golang
 	go get github.com/prometheus/client_golang/prometheus
 	go get github.com/prometheus/client_golang/prometheus/promhttp
