@@ -66,7 +66,9 @@ type amd_data struct {
 	GPUSCLK *prometheus.Desc
 	GPUMCLK *prometheus.Desc
 	GPUUsage *prometheus.Desc
+	GPUMemoryBusyPercent *prometheus.Desc
 	GPUMemoryUsage *prometheus.Desc
+	GPUMemoryTotal *prometheus.Desc
 	Data func() (collect.AMDParams)
 }
 
@@ -141,52 +143,63 @@ func NewCollector(handle func() (collect.AMDParams)) prometheus.Collector {
 		GPUDevId: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_dev_id"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_dev_id", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_dev_id", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUPowerCap: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_power_cap"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_power_cap", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_power_cap", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUPowerAvg: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_power_avg"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_power_avg", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_power_avg", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUTemperature: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_current_temperature"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_current_temperature", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_current_temperature", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUSCLK: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_SCLK"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_SCLK", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_SCLK", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUMCLK: prometheus.NewDesc(
 			prometheus.BuildFQName("amd", "", "gpu_MCLK"),
 			"AMD Params",// The metric's help text.
-			[]string{"gpu_MCLK", "productname"},// The metric's variable label dimensions.
+			[]string{"gpu_MCLK", "productname", "node_id", "pod"},// The metric's variable label dimensions.
 			nil,// The metric's constant label dimensions.
 		),
 		GPUUsage: prometheus.NewDesc(
                         prometheus.BuildFQName("amd", "", "gpu_use_percent"),
                         "AMD Params",// The metric's help text.
-                        []string{"gpu_use_percent", "productname"},// The metric's variable label dimensions.
+                        []string{"gpu_id", "productname", "node_id", "pod"},// The metric's variable label dimensions.
                         nil,// The metric's constant label dimensions.
                 ),
-                GPUMemoryUsage: prometheus.NewDesc(
+                GPUMemoryBusyPercent: prometheus.NewDesc(
                         prometheus.BuildFQName("amd", "", "gpu_memory_use_percent"),
                         "AMD Params",// The metric's help text.
-                        []string{"gpu_memory_use_percent", "productname"},// The metric's variable label dimensions.
+                        []string{"gpu_id", "productname", "node_id", "pod"},// The metric's variable label dimensions.
                         nil,// The metric's constant label dimensions.
                 ),
-
+		GPUMemoryUsage: prometheus.NewDesc(
+                        prometheus.BuildFQName("amd", "", "gpu_memory_used"),
+                        "AMD Params",// The metric's help text.
+                        []string{"gpu_id", "productname", "node_id", "pod"},// The metric's variable label dimensions.
+                        nil,// The metric's constant label dimensions.
+                ),
+                GPUMemoryTotal: prometheus.NewDesc(
+                        prometheus.BuildFQName("amd", "", "gpu_memory_total"),
+                        "AMD Params",// The metric's help text.
+                        []string{"gpu_id", "productname", "node_id", "pod"},// The metric's variable label dimensions.
+                        nil,// The metric's constant label dimensions.
+                ),
 
 		Data: handle, //This is the Scan() function handle
 	}
@@ -260,7 +273,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUDevId,
-			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
 	for i,s := range data.GPUPowerCap{
@@ -268,7 +281,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUPowerCap,
-			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
 	for i,s := range data.GPUPowerAvg{
@@ -276,7 +289,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUPowerAvg,
-			prometheus.CounterValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.CounterValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
 	for i,s := range data.GPUTemperature{
@@ -284,7 +297,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUTemperature,
-			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
 	for i,s := range data.GPUSCLK{
@@ -292,7 +305,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUSCLK,
-			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
 	for i,s := range data.GPUMCLK{
@@ -300,7 +313,7 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(c.GPUMCLK,
-			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+			prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
 	}
 
         for i,s := range data.GPUUsage{
@@ -308,7 +321,15 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
                         continue
                 }
                 ch <- prometheus.MustNewConstMetric(c.GPUUsage,
-                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
+        }
+
+        for i,s := range data.GPUMemoryBusyPercent{
+                if uint(i) > (data.NumGPUs - 1) {
+                        continue
+                }
+                ch <- prometheus.MustNewConstMetric(c.GPUMemoryBusyPercent,
+                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
         }
 
         for i,s := range data.GPUMemoryUsage{
@@ -316,7 +337,15 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
                         continue
                 }
                 ch <- prometheus.MustNewConstMetric(c.GPUMemoryUsage,
-                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i])
+                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
+        }
+
+	for i,s := range data.GPUMemoryTotal{
+                if uint(i) > (data.NumGPUs - 1) {
+                        continue
+                }
+                ch <- prometheus.MustNewConstMetric(c.GPUMemoryTotal,
+                        prometheus.GaugeValue, float64(s), strconv.Itoa(i), gGPUProductNames[i], gNodeName, gPod)
         }
 
 	ch <- prometheus.MustNewConstMetric(c.Sockets,

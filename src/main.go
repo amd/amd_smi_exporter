@@ -53,7 +53,8 @@ import (
 )
 
 var gGPUProductNames[24] string
-
+var gNodeName string
+var gPod string 
 /* rocm-smi output sample
 {"card0": 
     {
@@ -98,7 +99,19 @@ func GetGpuProductNames() {
 	}
 }
 
+func GetNodeName() {
+	nodename, err := exec.Command("uname", "-n").Output()
+	if err == nil {
+	    gNodeName = string(nodename)
+	    gPod = string(nodename)
+	} else {
+	    log.Fatal(err)
+	}
+}
+
 func main() {
+	// Get Node name
+	GetNodeName()
 	// Get all GPU product names
 	GetGpuProductNames()
 
@@ -122,4 +135,3 @@ func main() {
 		log.Fatalf("cannot start collector exporter: %s", err)
 	}
 }
-
