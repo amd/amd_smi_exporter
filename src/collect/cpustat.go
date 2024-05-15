@@ -42,9 +42,9 @@ package collect
 import "github.com/amd/go_amd_smi"
 
 type AMDParams struct {
-	CoreEnergy [512]float64
+	CoreEnergy [768]float64
 	SocketEnergy [2]float64
-	CoreBoost [512]float64
+	CoreBoost [768]float64
 	SocketPower [2]float64
 	PowerLimit [2]float64
 	ProchotStatus [2]float64
