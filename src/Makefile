@@ -14,7 +14,7 @@ clean:
 install:
 	sudo cp amd_smi_exporter /usr/local/bin
 	sudo cp amd-smi-exporter.service /etc/systemd/system
-	sudo cp amd-smi-custom-rules.yml /usr/local/bin/prometheus
+	sudo cp amd-smi-custom-rules.yml /etc/prometheus
 
 container:
 	mkdir -p ./install/library
