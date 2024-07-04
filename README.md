@@ -89,11 +89,12 @@ To install the binary in /usr/local/bin, and install the service file in
 
 Before executing the GO exporter as a standalone executable or as a service, one needs to ensure
 that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met by ensuring that they are
-installed in the "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/rocm_smi/lib" directories
-respectively. Please refer to <https://github.com/amd/esmi_ib_library/docs/README.md>,
-<https://github.com/amd/go_amd_smi/README.md>, and
-<https://github.com/RadeonOpenCompute/rocm_smi_lib/README.md> for the build and installation
-instructions.
+installed in the "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/lib" directories
+respectively. Please refer to 
+<https://github.com/amd/esmi_ib_library/blob/master/docs/README.md>,
+<https://github.com/amd/go_amd_smi/blob/master/README.md>, and
+<https://github.com/RadeonOpenCompute/rocm_smi_lib/blob/master/README.md>
+ for the build and installation instructions.
 
 <a name="kernel"></a>
 # Kernel dependencies
@@ -173,7 +174,7 @@ the configs specified in /etc/prometheus/prometheus.yml.
 ## 2. The GO exporter may be started as a systemd daemon as follows:
 
 NOTE: The environment variable for the LD_LIBRARY_PATH is set to
-/opt/e-sms/e_smi/lib:/opt/rocm/rocm_smi/lib:/opt/goamdsmi/lib
+/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib
 
 	```$ sudo systemctl daemon-reload```
 
