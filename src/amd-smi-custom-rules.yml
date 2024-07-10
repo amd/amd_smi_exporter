@@ -15,8 +15,8 @@ groups:
       expr: amd_power_limit/1000
     - record: amd_gpu_power_cap_Watts
       expr: amd_gpu_power_cap/1000000
-    - record: amd_gpu_power_avg_Watts
-      expr: amd_gpu_power_avg/1000000
+    - record: amd_gpu_power_Watts
+      expr: amd_gpu_power/1000000
     - record: amd_gpu_current_temperature_Celcius
       expr: amd_gpu_current_temperature/1000
     - record: amd_gpu_SCLK_MHz

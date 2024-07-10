@@ -54,7 +54,7 @@ type AMDParams struct {
 	NumGPUs uint
 	GPUDevId [24]float64
 	GPUPowerCap [24]float64
-	GPUPowerAvg [24]float64
+	GPUPower [24]float64
 	GPUTemperature [24]float64
 	GPUSCLK [24]float64
 	GPUMCLK [24]float64
@@ -65,84 +65,93 @@ type AMDParams struct {
 func Scan() (AMDParams) {
 
 	var stat AMDParams
+
 	value64 := uint64(0)
 	value32 := uint32(0)
 	value16 := uint16(0)
 
-	if 1 == goamdsmi.GO_esmi_init() {
-		num_sockets := int(goamdsmi.GO_esmi_number_of_sockets_get())
-		num_threads := int(goamdsmi.GO_esmi_number_of_threads_get())
-		num_threads_per_core := int(goamdsmi.GO_esmi_threads_per_core_get())
+	if true == goamdsmi.GO_cpu_init() {
+
+		num_sockets := int(goamdsmi.GO_cpu_number_of_sockets_get())
+		num_threads := int(goamdsmi.GO_cpu_number_of_threads_get())
+		num_threads_per_core := int(goamdsmi.GO_cpu_threads_per_core_get())
 
 		stat.Sockets = uint(num_sockets)
 		stat.Threads = uint(num_threads)
 		stat.ThreadsPerCore = uint(num_threads_per_core)
 
 		for i := 0; i < num_threads ; i++ {
-			value64 = uint64(goamdsmi.GO_esmi_core_energy_get(i))
+			value64 = uint64(goamdsmi.GO_cpu_core_energy_get(i))
 			stat.CoreEnergy[i] = float64(value64)
 			value64 = 0
 
-			value32 = uint32(goamdsmi.GO_esmi_core_boostlimit_get(i))
+			value32 = uint32(goamdsmi.GO_cpu_core_boostlimit_get(i))
 			stat.CoreBoost[i] = float64(value32)
 			value32 = 0
 		}
 
 		for i := 0; i < num_sockets ; i++ {
-			value64 = uint64(goamdsmi.GO_esmi_socket_energy_get(i))
+			value64 = uint64(goamdsmi.GO_cpu_socket_energy_get(i))
 			stat.SocketEnergy[i] = float64(value64)
 			value64 = 0
 
-			value32 = uint32(goamdsmi.GO_esmi_socket_power_get(i))
+			value32 = uint32(goamdsmi.GO_cpu_socket_power_get(i))
 			stat.SocketPower[i] = float64(value32)
 			value32 = 0
 
-			value32 = uint32(goamdsmi.GO_esmi_socket_power_cap_get(i))
+			value32 = uint32(goamdsmi.GO_cpu_socket_power_cap_get(i))
 			stat.PowerLimit[i] = float64(value32)
 			value32 = 0
 
-			value32 = uint32(goamdsmi.GO_esmi_prochot_status_get(i))
+			value32 = uint32(goamdsmi.GO_cpu_prochot_status_get(i))
 			stat.ProchotStatus[i] = float64(value32)
 			value32 = 0
 		}
 	}
-	if 1 == goamdsmi.GO_rsmi_init() {
-		num_gpus := int(goamdsmi.GO_rsmi_num_monitor_devices())
+
+
+	if true == goamdsmi.GO_gpu_init() {
+
+		num_gpus := int(goamdsmi.GO_gpu_num_monitor_devices())
 		stat.NumGPUs = uint(num_gpus)
 
 		for i := 0; i < num_gpus ; i++ {
-			value16 = uint16(goamdsmi.GO_rsmi_dev_id_get(i))
+			value16 = uint16(goamdsmi.GO_gpu_dev_id_get(i))
 			stat.GPUDevId[i] = float64(value16)
 			value16 = 0
 
-			value64 = uint64(goamdsmi.GO_rsmi_dev_power_cap_get(i))
+			value64 = uint64(goamdsmi.GO_gpu_dev_power_cap_get(i))
 			stat.GPUPowerCap[i] = float64(value64)
 			value64 = 0
 
-			value64 = uint64(goamdsmi.GO_rsmi_dev_power_ave_get(i))
-			stat.GPUPowerAvg[i] = float64(value64)
+			value64 = uint64(goamdsmi.GO_gpu_dev_power_get(i))
+			stat.GPUPower[i] = float64(value64)
 			value64 = 0
 
 			//Get the value for GPU current temperature. Sensor = 0(GPU), Metric = 0(current)
-			value64 = uint64(goamdsmi.GO_rsmi_dev_temp_metric_get(i, 0, 0))
+			value64 = uint64(goamdsmi.GO_gpu_dev_temp_metric_get(i, 0, 0))
+			if UINT64_MAX == value64 {
+				//Sensor = 1 (GPU Junction Temp)
+				value64 = uint64(goamdsmi.GO_gpu_dev_temp_metric_get(i, 1, 0))
+			}
 			stat.GPUTemperature[i] = float64(value64)
 			value64 = 0
 
-			value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_clk_freq_get_sclk(i))
+			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_clk_freq_get_sclk(i))
 			stat.GPUSCLK[i] = float64(value64)
 			value64 = 0
 
-			value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_clk_freq_get_mclk(i))
+			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_clk_freq_get_mclk(i))
 			stat.GPUMCLK[i] = float64(value64)
 			value64 = 0
 
-                        value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_busy_percent_get(i))
-                        stat.GPUUsage[i] = float64(value64)
-                        value64 = 0
+			value32 = uint32(goamdsmi.GO_gpu_dev_gpu_busy_percent_get(i))
+			stat.GPUUsage[i] = float64(value32)
+			value32 = 0
 
-			value64 = uint64(goamdsmi.GO_rsmi_dev_gpu_memory_busy_percent_get(i))
-                        stat.GPUMemoryUsage[i] = float64(value64)
-                        value64 = 0
+			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_memory_busy_percent_get(i))
+			stat.GPUMemoryUsage[i] = float64(value64)
+			value64 = 0
 		}
 	}
 
