@@ -66,9 +66,41 @@ type AMDParams struct {
 	GPUMemoryUsage [24]float64
 }
 
+func (amdParams *AMDParams) Init() {
+	amdParams.Sockets = 0
+	amdParams.Threads = 0
+	amdParams.ThreadsPerCore = 0
+
+	amdParams.NumGPUs = 0
+
+	for socketLoopCounter := 0; socketLoopCounter < len(amdParams.SocketEnergy); socketLoopCounter++	{
+		amdParams.SocketEnergy[socketLoopCounter] = -1
+		amdParams.SocketPower[socketLoopCounter] = -1
+		amdParams.PowerLimit[socketLoopCounter] = -1
+		amdParams.ProchotStatus[socketLoopCounter] = -1
+	}
+
+	for logicalCoreLoopCounter := 0; logicalCoreLoopCounter < len(amdParams.CoreEnergy); logicalCoreLoopCounter++	{
+		amdParams.CoreEnergy[logicalCoreLoopCounter] = -1
+		amdParams.CoreBoost[logicalCoreLoopCounter] = -1
+	}
+
+	for gpuLoopCounter := 0; gpuLoopCounter < len(amdParams.GPUDevId); gpuLoopCounter++	{
+		amdParams.GPUDevId[gpuLoopCounter] = -1
+		amdParams.GPUPowerCap[gpuLoopCounter] = -1
+		amdParams.GPUPower[gpuLoopCounter] = -1
+		amdParams.GPUTemperature[gpuLoopCounter] = -1
+		amdParams.GPUSCLK[gpuLoopCounter] = -1
+		amdParams.GPUMCLK[gpuLoopCounter] = -1
+		amdParams.GPUUsage[gpuLoopCounter] = -1
+		amdParams.GPUMemoryUsage[gpuLoopCounter] = -1
+	}
+}
+
 func Scan() (AMDParams) {
 
 	var stat AMDParams
+	stat.Init()
 
 	value64 := uint64(0)
 	value32 := uint32(0)
