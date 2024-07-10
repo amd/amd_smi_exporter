@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib
+Environment=LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/rocm/lib64:/opt/goamdsmi/lib
 ExecStart=/usr/local/bin/amd_smi_exporter
 
 [Install]
