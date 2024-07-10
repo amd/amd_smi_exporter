@@ -41,10 +41,14 @@
 package collect
 import "github.com/amd/go_amd_smi"
 
+var UINT16_MAX = uint16(0xFFFF)
+var UINT32_MAX = uint32(0xFFFFFFFF)
+var UINT64_MAX = uint64(0xFFFFFFFFFFFFFFFF)
+
 type AMDParams struct {
 	CoreEnergy [768]float64
-	SocketEnergy [8]float64
 	CoreBoost [768]float64
+	SocketEnergy [8]float64
 	SocketPower [8]float64
 	PowerLimit [8]float64
 	ProchotStatus [8]float64
@@ -82,29 +86,29 @@ func Scan() (AMDParams) {
 
 		for i := 0; i < num_threads ; i++ {
 			value64 = uint64(goamdsmi.GO_cpu_core_energy_get(i))
-			stat.CoreEnergy[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.CoreEnergy[i] = float64(value64) }
 			value64 = 0
 
 			value32 = uint32(goamdsmi.GO_cpu_core_boostlimit_get(i))
-			stat.CoreBoost[i] = float64(value32)
+			if UINT32_MAX != value32 { stat.CoreBoost[i] = float64(value32) }
 			value32 = 0
 		}
 
 		for i := 0; i < num_sockets ; i++ {
 			value64 = uint64(goamdsmi.GO_cpu_socket_energy_get(i))
-			stat.SocketEnergy[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.SocketEnergy[i] = float64(value64) }
 			value64 = 0
 
 			value32 = uint32(goamdsmi.GO_cpu_socket_power_get(i))
-			stat.SocketPower[i] = float64(value32)
+			if UINT32_MAX != value32 { stat.SocketPower[i] = float64(value32) }
 			value32 = 0
 
 			value32 = uint32(goamdsmi.GO_cpu_socket_power_cap_get(i))
-			stat.PowerLimit[i] = float64(value32)
+			if UINT32_MAX != value32 { stat.PowerLimit[i] = float64(value32) }
 			value32 = 0
 
 			value32 = uint32(goamdsmi.GO_cpu_prochot_status_get(i))
-			stat.ProchotStatus[i] = float64(value32)
+			if UINT32_MAX != value32 { stat.ProchotStatus[i] = float64(value32) }
 			value32 = 0
 		}
 	}
@@ -117,15 +121,15 @@ func Scan() (AMDParams) {
 
 		for i := 0; i < num_gpus ; i++ {
 			value16 = uint16(goamdsmi.GO_gpu_dev_id_get(i))
-			stat.GPUDevId[i] = float64(value16)
+			if UINT16_MAX != value16 { stat.GPUDevId[i] = float64(value16) }
 			value16 = 0
 
 			value64 = uint64(goamdsmi.GO_gpu_dev_power_cap_get(i))
-			stat.GPUPowerCap[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUPowerCap[i] = float64(value64) }
 			value64 = 0
 
 			value64 = uint64(goamdsmi.GO_gpu_dev_power_get(i))
-			stat.GPUPower[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUPower[i] = float64(value64) }
 			value64 = 0
 
 			//Get the value for GPU current temperature. Sensor = 0(GPU), Metric = 0(current)
@@ -134,26 +138,27 @@ func Scan() (AMDParams) {
 				//Sensor = 1 (GPU Junction Temp)
 				value64 = uint64(goamdsmi.GO_gpu_dev_temp_metric_get(i, 1, 0))
 			}
-			stat.GPUTemperature[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUTemperature[i] = float64(value64) }
 			value64 = 0
 
 			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_clk_freq_get_sclk(i))
-			stat.GPUSCLK[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUSCLK[i] = float64(value64) }
 			value64 = 0
 
 			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_clk_freq_get_mclk(i))
-			stat.GPUMCLK[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUMCLK[i] = float64(value64) }
 			value64 = 0
 
 			value32 = uint32(goamdsmi.GO_gpu_dev_gpu_busy_percent_get(i))
-			stat.GPUUsage[i] = float64(value32)
+			if UINT32_MAX != value32 { stat.GPUUsage[i] = float64(value32) }
 			value32 = 0
 
 			value64 = uint64(goamdsmi.GO_gpu_dev_gpu_memory_busy_percent_get(i))
-			stat.GPUMemoryUsage[i] = float64(value64)
+			if UINT64_MAX != value64 { stat.GPUMemoryUsage[i] = float64(value64) }
 			value64 = 0
 		}
 	}
 
 	return stat
 }
+
