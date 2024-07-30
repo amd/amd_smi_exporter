@@ -1,3 +1,6 @@
+# MIT-X11 Open Source License
+# Copyright (c) 2024, Advanced Micro Devices, Inc.
+
 #Ubuntu based container
 FROM ubuntu:20.04
 # For rhel8 based container

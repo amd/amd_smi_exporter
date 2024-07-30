@@ -1,3 +1,5 @@
+# MIT-X11 Open Source License
+# Copyright (c) 2024, Advanced Micro Devices, Inc.
 build:
 	make clean
 	go mod init src
