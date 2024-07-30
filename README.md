@@ -1,7 +1,7 @@
 1. [Introduction to the AMD SMI Exporter](#desc)
-2. [Building the GO Exporter](#build)
+2. [Kernel Dependencies](#kernel)
 3. [Library Dependencies](#lib)
-4. [Kernel Dependencies](#kernel)
+4. [Building the GO Exporter](#build)
 5. [Building the container for the GO Exporter](#container_build)
 6. [Running the GO Exporter](#running)
 7. [Supported Hardware](#hw)
@@ -32,15 +32,89 @@ development, and therefore subject to change in the features it offers and at th
 with the GO binding.
 
 While every effort will be made to ensure stable backward compatibility in software releases
-with a major version greater than 0, any code/interface may be subject to rivision/change while
+with a major version greater than 0, any code/interface may be subject to revision/change while
 the major version remains 0.
+
+
+<a name="kernel"></a>
+# Kernel dependencies
+
+The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux
+to manage the system management features.
+
+CPU energy information is retrieved from out-of-tree amd_energy driver
+	* [amd_energy] (https://github.com/amd/amd_energy.git)
+
+The amd_hsmp driver for required for all the information
+	* amd_hsmp driver is available in upstream kernel version 5.18.
+Now, In situations where the driver is unavailable, see notes for Esmi instllation under Library dependencies that provides a workaround for this.
+
+<a name="lib"></a>
+# Library Dependencies
+
+Before executing the GO exporter as a standalone executable or
+as a service, one needs to ensure that the
+1. e-smi 
+2. rocm-smi
+3. goamdsmi_shim
+4. GO v1.20 
+
+dependencies are met. In this specific order, since later dependencies depend on previous ones. Please refer to the steps to
+build and install the library dependencies in the respective README
+of these repositories. 
+
+Please refer to the following links [Also refer to notes below for specific FAQs and common issues]
+<https://github.com/amd/esmi_ib_library/blob/master/docs/README.md>,
+<https://github.com/amd/go_amd_smi/blob/master/README.md>, and
+<https://github.com/RadeonOpenCompute/rocm_smi_lib/blob/master/README.md>
+ for the build and installation instructions.
+
+Note on ESMI installation:
+
+ESMI requires AMD HSMP.
+The AMD HSMP driver is now part of the Linux kernel upstream starting in v5.18-rc1, however it might not be detected in the system. If there is an error related to amd_hsmp.h header
+
+try the following, git clone and copy amd_hsmp.h to usr/include/asm-generic
+
+	$ git clone https://github.com/amd/amd_hsmp
+	$ cd amd_hsmp
+	$ mv amd_hsmp.h /usr/include/asm-generic
+	
+then proceed with build as provide in <https://github.com/amd/esmi_ib_library/blob/master/docs/README.md>
+
+Note on GO Installation:
+
+ If running on AMD rocm dockers, GO installation through apt install on Linux is only supported till 1.18.
+ Manual installation can be done from here: <https://go.dev/dl/>
+ Below is an example of installing 1.20.12 of go.
+
+	$ wget -L "https://golang.org/dl/go1.20.12.linux-amd64.tar.gz"
+	$ tar -xf "go1.20.12.linux-amd64.tar.gz"
+	$ cd go/
+	$ ls -l
+	$ cd ..
+	$ sudo chown -R root:root ./go
+	$ sudo mv -v go /usr/local
+	$ export GOPATH=$HOME/go
+	$ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+	
+
+After the dependencies are installed, please verify if they are available in their default locations "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/lib" directories
+respectively. 
+the LD_LIBRARY_PATH needs to be set. The environment variable for the LD_LIBRARY_PATH
+
+	$ export LD_LIBRARY_PATH=/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib
+
+The user may edit this environment variable to reflect the installation path
+where the dependent libraries are installed, if different.
+
 
 <a name="build"></a>
 # Building the GO Exporter
 
-## Dowloading the source
+## Downloading the source
 
-The source code for the GO Exporter is available at [AMD SMI Exporter](https://github.com/amd/amd_smi_exporter.git).
+The source code for the GO Exporter is available at this repo [AMD SMI Exporter](https://github.com/amd/amd_smi_exporter.git).
 
 ## Directory stucture of the source
 
@@ -48,6 +122,7 @@ Once the exporter source has been cloned to a local Linux machine, the directory
 source is as below:
 * `$ src/` Contains exporter source for package main
 * `$ src/collect` Contains the implementation of the Scan function of the collector.
+
 
 ## Building
 
@@ -61,14 +136,6 @@ The GO Exporter may be built from the src directory as follows:
 
 	```amd_smi_exporter/src$ make clean```
 
-NOTE: Before executing the GO exporter as a standalone executable or
-as a service, one needs to ensure that the e-smi , goamdsmi_shim, and
-rocm-smi library dependencies are met. Please refer to the steps to
-build and install the library dependencies in the respective README
-of these repositories. The environment variable for the LD_LIBRARY_PATH
-is to be set to "/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib".
-The user may edit this environment variable to reflect the installation path
-where the dependent libraries are installed.
 
 * Execute "make" to perform a "go get" of dependent modules such as
 	* github.com/prometheus/client_golang
@@ -84,29 +151,7 @@ To install the binary in /usr/local/bin, and install the service file in
 
 	```$ sudo make install```
 
-<a name="lib"></a>
-# Library dependencies
 
-Before executing the GO exporter as a standalone executable or as a service, one needs to ensure
-that the e-smi , goamdsmi_shim, and rocm-smi library dependencies are met by ensuring that they are
-installed in the "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/lib" directories
-respectively. Please refer to 
-<https://github.com/amd/esmi_ib_library/blob/master/docs/README.md>,
-<https://github.com/amd/go_amd_smi/blob/master/README.md>, and
-<https://github.com/RadeonOpenCompute/rocm_smi_lib/blob/master/README.md>
- for the build and installation instructions.
-
-<a name="kernel"></a>
-# Kernel dependencies
-
-The E-SMI Library, and inturn the GO exporter, depends on the following device drivers from Linux
-to manage the system management features.
-
-CPU energy information is retrieved from out-of-tree amd_energy driver
-	* [amd_energy] (https://github.com/amd/amd_energy.git)
-
-The amd_hsmp driver for required for all the information
-	* amd_hsmp driver is available in upstream kernel version 5.18.
 
 <a name="container_build"></a>
 # Building the container for the GO Exporter
@@ -365,3 +410,4 @@ Here are a few sample queries that may be built over the aforementioned objects:
 
 * > ### amd_prochot_status != 0
 	Alert to check if PROC_HOT status has been triggered
+
