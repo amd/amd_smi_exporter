@@ -18,15 +18,16 @@ e. [Custom rules](#custom)
 
 The AMD SMI Exporter is a standalone app that can be run as a daemon, written in GO Language,
 that exports AMD CPU  & GPU metrics to the Prometheus server. The AMD SMI Prometheus Exporter
-employs the [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git) &
-[ROCm SMI Library](https://github.com/RadeonOpenCompute/rocm_smi_lib.git) for its data
+employs the [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git),
+[ROCm SMI Library](https://github.com/ROCm/rocm_smi_lib.git) &
+[AMDSMI Library](https://github.com/ROCm/amdsmi.git) for its data
 acquisition. The exporter and the E-SMI/ROCm-SMI library have a
 [GO binding](https://github.com/amd/go_amd_smi.git) that provides an interface between the
-e-smi,rocm-smi C,C++ library and the GO exporter code.
+e-smi, rocm-smi, amdsmi C,C++ library and the GO exporter code.
 
 ## Important note about Versioning and Backward Compatibility
 
-The AMD SMI Exporter follows the E-SMI In-band library and the ROCm library in its releases,
+The AMD SMI Exporter follows the E-SMI In-band library, the ROCm library and the AMDSMI library in its releases,
 as it is dependent on the underlying libraries for its data. The Exporter is currently under
 development, and therefore subject to change in the features it offers and at the interface
 with the GO binding.
@@ -56,8 +57,9 @@ Before executing the GO exporter as a standalone executable or
 as a service, one needs to ensure that the
 1. e-smi 
 2. rocm-smi
-3. goamdsmi_shim
-4. GO v1.20 
+3. amdsmi
+4. goamdsmi_shim
+5. GO v1.20
 
 dependencies are met. In this specific order, since later dependencies depend on previous ones. Please refer to the steps to
 build and install the library dependencies in the respective README
@@ -65,8 +67,9 @@ of these repositories.
 
 Please refer to the following links [Also refer to notes below for specific FAQs and common issues]
 <https://github.com/amd/esmi_ib_library/blob/master/docs/README.md>,
-<https://github.com/amd/go_amd_smi/blob/master/README.md>, and
-<https://github.com/RadeonOpenCompute/rocm_smi_lib/blob/master/README.md>
+<https://github.com/amd/go_amd_smi/blob/master/README.md>,
+<https://github.com/ROCm/rocm_smi_lib/blob/master/README.md> and
+<https://github.com/ROCm/amdsmi/blob/master/README.md>
  for the build and installation instructions.
 
 Note on ESMI installation:
@@ -99,11 +102,11 @@ Note on GO Installation:
 	$ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 	
 
-After the dependencies are installed, please verify if they are available in their default locations "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib" and "/opt/rocm/lib" directories
-respectively. 
+After the dependencies are installed, please verify if they are available in their default locations "/opt/e-sms/e_smi/lib", "/opt/goamdsmi/lib",
+"/opt/rocm/lib" and "/opt/rocm/lib64" directories respectively.
 the LD_LIBRARY_PATH needs to be set. The environment variable for the LD_LIBRARY_PATH
 
-	$ export LD_LIBRARY_PATH=/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib
+	$ export LD_LIBRARY_PATH=/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/rocm/lib64:/opt/goamdsmi/lib
 
 The user may edit this environment variable to reflect the installation path
 where the dependent libraries are installed, if different.
@@ -210,6 +213,7 @@ Please ensure that the prometheus systemd service is installed in
 /etc/systemd/system/prometheus.service and that it is running with 
 the configs specified in /etc/prometheus/prometheus.yml.
 
+
 ## 1. The GO exporter may be run manually by executing the "amd_smi_exporter" GO binary
 
 	```amd_smi_exporter/src$ ./amd_smi_exporter```
@@ -219,7 +223,7 @@ the configs specified in /etc/prometheus/prometheus.yml.
 ## 2. The GO exporter may be started as a systemd daemon as follows:
 
 NOTE: The environment variable for the LD_LIBRARY_PATH is set to
-/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/goamdsmi/lib
+/opt/e-sms/e_smi/lib:/opt/rocm/lib:/opt/rocm/lib64:/opt/goamdsmi/lib
 
 	```$ sudo systemctl daemon-reload```
 
@@ -263,11 +267,31 @@ NOTE: It is assumed that the user has a running docker daemon and a kubernetes c
 	the cluster.
 
 
+NOTE:
+If the prometheus service fails to start properly, run the command "journalctl -u prometheus -f --no-pager"
+and review the output for errors.
+- If observed issue is related to Weblister busy or Port is already used, then Change Port from 9090 to 9091
+in both
+* /etc/systemd/system/prometheus.service file
+	- under line "--web.listen-address=0.0.0.0:9090"
+* /etc/prometheus/prometheus.yml file
+	- under line "targets: ["localhost:9090"]
+and then restart the systemd service using command "service prometheus restart".
+
 <a name="hw"></a>
 # Supported hardware
 
 AMD Zen3 based CPU Family `19h` Models `0h-Fh` and `30h-3Fh`, and `17h` Model `30h`.
 AMD APU based Family `19h` Models `90h-9fh` and mi300x models.
+Also, Supporting CPU Family `19h` Models `10h-1Fh` and CPU Family `1Ah` Models `0h-Fh`.
+
+# Test Environment
+
+dependent libraries versions:
+1. AMDSMI version: 24.6.2.0 in "amd-staging" branch of [AMDSMI Library](https://github.com/ROCm/amdsmi.git)
+2. ROCMSMI version: 7.3.0 in "amd-staging" branch of [ROCm SMI Library](https://github.com/ROCm/rocm_smi_lib.git) &
+3. E-SMI version: tag: esmi_pkg_ver-4.0.0 in "master" branch of [E-SMI In-Band C library](https://github.com/amd/esmi_ib_library.git).
+
 
 <a name="sw"></a>
 # Additional required software for building
