@@ -325,12 +325,17 @@ func (c *amd_data) Collect(ch chan<- prometheus.Metric) {
 		}
 	}
 
-	ch <- prometheus.MustNewConstMetric(c.Sockets,
-		prometheus.GaugeValue, float64(data.Sockets), "")
-	ch <- prometheus.MustNewConstMetric(c.Threads,
-		prometheus.GaugeValue, float64(data.Threads), "")
-	ch <- prometheus.MustNewConstMetric(c.ThreadsPerCore,
-		prometheus.GaugeValue, float64(data.ThreadsPerCore), "")
-	ch <- prometheus.MustNewConstMetric(c.NumGPUs,
-		prometheus.GaugeValue, float64(data.NumGPUs), "")
+	if 0 < data.Sockets {
+		ch <- prometheus.MustNewConstMetric(c.Sockets,
+			prometheus.GaugeValue, float64(data.Sockets), "")
+		ch <- prometheus.MustNewConstMetric(c.Threads,
+			prometheus.GaugeValue, float64(data.Threads), "")
+		ch <- prometheus.MustNewConstMetric(c.ThreadsPerCore,
+			prometheus.GaugeValue, float64(data.ThreadsPerCore), "")
+	}
+
+	if 0 < data.NumGPUs {
+		ch <- prometheus.MustNewConstMetric(c.NumGPUs,
+			prometheus.GaugeValue, float64(data.NumGPUs), "")
+	}
 }
