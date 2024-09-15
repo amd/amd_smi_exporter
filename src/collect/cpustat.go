@@ -39,7 +39,7 @@
 
 // Package cpustat provides an example parser for Linux CPU utilization statistics.
 package collect
-import "github.com/amd/go_amd_smi"
+import "github.com/ROCm/amdsmi"
 
 var UINT16_MAX = uint16(0xFFFF)
 var UINT32_MAX = uint32(0xFFFFFFFF)
