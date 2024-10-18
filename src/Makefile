@@ -18,7 +18,7 @@ install: copy_exporter_rules
 	sudo cp amd_smi_exporter /usr/local/bin
 	sudo cp amd-smi-exporter.service /etc/systemd/system
 	sudo mkdir -p /usr/share/doc/amd-smi-exporter
-	sudo cp ../amd_smi_exporter_readme.md /usr/share/doc/amd-smi-exporter
+	sudo cp ../README.md /usr/share/doc/amd-smi-exporter
 
 copy_exporter_rules:
 ifeq ($(shell test -d "/etc/prometheus" && echo -n yes),yes)
