@@ -7,6 +7,12 @@ employs
 * [AMDSMI Library](https://github.com/ROCm/amdsmi.git) for its data acquisition and 
 * [GO binding](https://github.com/ROCm/amdsmi/blob/amd-staging/goamdsmi.go) that provides an interface between the amdsmi and the GO exporter code.
 
+Note:
+----
+This [AMD SMI Exporter](https://github.com/amd/amd_smi_exporter) repository will no longer receive further updates. 
+Moving forward, the [AMD Device Metrics Exporter](https://github.com/rocm/device-metrics-exporter) repository will serve as the official replacement. 
+Please transition to [AMD Device Metrics Exporter](https://github.com/rocm/device-metrics-exporter) for continued improvements, updates, and support.
+
 ### Important note about Versioning and Backward Compatibility
 
 The AMD SMI Exporter follows the AMDSMI library in its releases, as it is dependent on the underlying libraries for its data. The Exporter is currently under development, and therefore subject to change in the features it offers and at the interface with the GO binding.
